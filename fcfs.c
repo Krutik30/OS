@@ -1,6 +1,8 @@
 #include <stdio.h>
 
 float timeLine = 0;
+float overhead = 0;
+
 void scanP(float arr[], int n)
 {
 
@@ -78,8 +80,10 @@ void final_Time(float aT[], float bT[], float fT[], int n)
         if (aT[i] > timeLine)
         {
             timeLine = aT[i];
+            if(aT[i]-timeLine < overhead)
+                timeLine += (overhead-(aT[i]-timeLine));
         }
-        timeLine += bT[i];
+        timeLine += bT[i] + overhead;
         fT[i] = timeLine;
     }
 }
@@ -121,14 +125,22 @@ int main()
     scanP(aT, n);
     printf(" -----> Burst Time \n");
     scanP(bT, n);
-    char ask[3] = "no";
-    printf("Needs Priority? yes/no");
-    scanf("%s", ask);
-    if (ask == "yes")
+    char ask = 'n';
+    printf("Needs Priority? y/n");
+    scanf("%c", &ask);
+    if (ask == 'y')
     {
         printf(" -----> Priority \n");
         scanP(prio, n);
     }
+    printf("Needs overHead? y/n");
+    scanf("%c", &ask);
+    if (ask == 'y')
+    {
+        printf("Enter Overhead : ");
+        scanf("%f" , &overhead);
+    }
+
     sort_arr_for_fcfs(aT, bT, p, n);
     final_Time(aT, bT, fT, n);
     turn_around_time(aT, fT, taT, n);

@@ -1,25 +1,32 @@
 #include <stdio.h>
 
 float timeLine = 0;
-void scanP(float arr[], int n){
+float overhead = 0;
 
-    for(int i=0;i<n;i++){
-        printf("Enter for Process - %d : ",i+1);
-        scanf("%f",&arr[i]);
+void scanP(float arr[], int n)
+{
+
+    for (int i = 0; i < n; i++)
+    {
+        printf("Enter for Process - %d : ", i + 1);
+        scanf("%f", &arr[i]);
     }
-
 }
 
-void heading(int p[] , int n){
-    printf("process : ");
-    for(int i=0;i<n;i++)
-        printf("p%d ",i+1);
+void heading(int p[], int n)
+{
+    printf("process : \n");
+    for (int i = 0; i < n; i++)
+        printf("%5dp ", p[i]);
+    printf("\n");
 }
 
-void PrintP(float arr[] , int n){
+void PrintP(float arr[], int n)
+{
 
-    for(int i=0;i<n;i++){
-        printf(" %f" , arr[i]);
+    for (int i = 0; i < n; i++)
+    {
+        printf(" %8.2f", arr[i]);
     }
     printf("\n");
 }
@@ -38,87 +45,72 @@ void swapProcess(int *xp, int *yp)
     *yp = temp;
 }
 
-
-void sort_arr_for_fcfs(float aT[] , float bT[] , int p[] , int n){
-
+void sort_arr_for_sjf(float aT[], float bT[], int p[], int n)
+{
     int min_i;
 
-    for(int i=0;i<n;i++){
+    for (int i = 0; i < n-1; i++)
+    {
         min_i = i;
         // prfloatf("%d " , aT[i]);
-        for(int j=i+1;j<n;j++){
-            if(aT[j] < aT[min_i]){
-                min_i = j;
+        for (int j = i + 1; j < n; j++)
+        {
+            if (aT[j] < aT[min_i])
+            {
+                swap(&aT[min_i], &aT[i]);
+                swap(&bT[min_i], &bT[i]);
+                swapProcess(&p[min_i], &p[i]);
             }
-        }
-        // prfloatf("%d " , aT[min_i]);
-
-        if(min_i != i){
-            swap(&aT[min_i] , &aT[i]);
-            swap(&bT[min_i] , &bT[i]);
-            swapProcess(&p[min_i] , &p[i]);
-        }
-        // prfloatf("final - %d \n" , aT[i]);
-    }
-}
-
-void sort_arr_for_sjf(float aT[] ,float bT[] ,int p[] ,int n){
-
-
-    sort_arr_for_fcfs(aT,bT,p,n);
-    int arrivalS = 0 , arrivalF , min_i;
-
-    for(int k=1;k<n;k++){
-        if(aT[k] == aT[k-1]){
-            arrivalF = k;
-        }
-        else{
-            for(int i=arrivalS;i<=arrivalF;i++){
-                min_i = i;
-                for(int j=i+1;j<arrivalF;i++){
-                    if(bT[j] < bT[min_i]){
-                        min_i = j;
-                    }
-                }
-                if(min_i != i){
-                    swap(&bT[i], &bT[min_i]);
-                    swap(&aT[i], &aT[min_i]);
-                    swapProcess(&p[i], &p[min_i]);
+            else if(aT[j] == aT[min_i]){
+                if(bT[j] < bT[min_i]){
+                    swap(&aT[min_i], &aT[i]);
+                    swap(&bT[min_i], &bT[i]);
+                    swapProcess(&p[min_i], &p[i]);
                 }
             }
-            arrivalS = arrivalF+1;
         }
     }
+
+    
 }
 
-void final_Time(float aT[], float bT[] , float fT[] ,int n){
+void final_Time(float aT[], float bT[], float fT[], int n)
+{
     timeLine = 0;
-    for(int i=0;i<n;i++){
-        if(aT[i] > timeLine){
-            timeLine += aT[i] - bT[i-1];
+    for (int i = 0; i < n; i++)
+    {
+        if (aT[i] > timeLine)
+        {
+            timeLine = aT[i];
+            if(aT[i]-timeLine < overhead)
+                timeLine += (overhead-(aT[i]-timeLine));
         }
-        timeLine += bT[i];
+        timeLine += bT[i] + overhead;
         fT[i] = timeLine;
     }
 }
 
-void turn_around_time(float aT[], float fT[] ,float taT[] , int n){
+void turn_around_time(float aT[], float fT[], float taT[], int n)
+{
 
-    for(int i=0;i<n;i++)
+    for (int i = 0; i < n; i++)
         taT[i] = fT[i] - aT[i];
-}   
+}
 
-void waiting_time(float taT[] , float bT[] , float wT[] , int n){
-    for(int i=0;i<n;i++)
+void waiting_time(float taT[], float bT[], float wT[], int n)
+{
+    for (int i = 0; i < n; i++)
         wT[i] = taT[i] - bT[i];
 }
 
-float avg(float arr[] , int n){
+float avg(float arr[], int n)
+{
     float sum = 0;
-    for(int i=0;i<n;i++){
+    for (int i = 0; i < n; i++)
+    {
         sum += arr[i];
     }
-    return sum/n;
+    return sum / n;
 }
 
 int main(){
@@ -134,13 +126,22 @@ int main(){
     scanP(aT , n);
     printf(" -----> Burst Time \n");
     scanP(bT , n);
-    char ask[3] = "no";
-    printf("Needs Priority? yes/no");
-    scanf("%s",ask);
-    if(ask == "yes"){
+    char ask = 'n';
+    printf("Needs Priority? y/n");
+    scanf("%c",&ask);
+    if (ask == 'y')
+    {
         printf(" -----> Priority \n");
-        scanP(prio , n);
+        scanP(prio, n);
     }
+    printf("Needs overHead? y/n");
+    scanf("%c",&ask);
+    if (ask == 'y')
+    {
+        printf("Enter Overhead : ");
+        scanf("%f" , &overhead);
+    }
+
     sort_arr_for_sjf(aT , bT , p , n);
     final_Time(aT, bT,fT, n);
     turn_around_time(aT,fT,taT,n);
