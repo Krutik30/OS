@@ -1,114 +1,144 @@
 #include <stdio.h>
+#include <stdbool.h>
 
 float timeLine = 0;
 float overhead = 0;
 
-void scanP(float arr[], int n)
+typedef struct
+{
+    int pid;
+    float aT;
+    float bT;
+    int priority;
+    float fT;
+    float taT;
+    float wT;
+}Process;
+
+void scanP(Process p[], int n ,bool flag)
 {
 
     for (int i = 0; i < n; i++)
     {
-        printf("Enter for Process - %d : ", i + 1);
-        scanf("%f", &arr[i]);
+        printf("\tEnter Arrival Time for Process - %d : ", i + 1);
+        scanf("%f", &p[i].aT);
+        printf("\tEnter Burst Time for Process - %d : ", i + 1);
+        scanf("%f", &p[i].bT);
+        if(flag){
+            printf("\tEnter Priority for Process - %d : ", i + 1);
+            scanf("%f", &p[i].priority);
+        }
     }
 }
 
-void heading(int p[], int n)
+void swap(Process *xp, Process *yp)
 {
-    printf("process : \n");
-    for (int i = 0; i < n; i++)
-        printf("%8dp ", p[i]);
-    printf("\n");
-}
-
-void PrintP(float arr[], int n)
-{
-
-    for (int i = 0; i < n; i++)
-    {
-        printf(" %8.2f", arr[i]);
-    }
-    printf("\n");
-}
-
-void swap(float *xp, float *yp)
-{
-    float temp = *xp;
+    Process temp = *xp;
     *xp = *yp;
     *yp = temp;
 }
 
-void swapProcess(int *xp, int *yp)
-{
-    int temp = *xp;
-    *xp = *yp;
-    *yp = temp;
-}
-
-void sort_arr_for_fcfs(float aT[], float bT[], int p[], int n)
+void sort_arr_for_fcfs(Process p[], int n)
 {
     int min_i;
-
     for (int i = 0; i < n; i++)
     {
         min_i = i;
-        // prfloatf("%d " , aT[i]);
         for (int j = i + 1; j < n; j++)
         {
-            if (aT[j] < aT[min_i])
+            if (p[j].aT < p[min_i].aT)
             {
                 min_i = j;
             }
         }
-        // prfloatf("%d " , aT[min_i]);
-
         if (min_i != i)
         {
-            swap(&aT[min_i], &aT[i]);
-            swap(&bT[min_i], &bT[i]);
-            swapProcess(&p[min_i], &p[i]);
+            swap(&p[i] ,&p[min_i]);
         }
-        // prfloatf("final - %d \n" , aT[i]);
     }
 }
 
-void final_Time(float aT[], float bT[], float fT[], int n)
+void TIMING(Process p[], int n)
 {
     timeLine = 0;
     for (int i = 0; i < n; i++)
     {
-        if (aT[i] > timeLine)
-        {
-            timeLine = aT[i];
-            if(aT[i]-timeLine < overhead)
-                timeLine += (overhead-(aT[i]-timeLine));
+        if(overhead && p[i].aT > timeLine){
+            timeLine = p[i].aT;
+            timeLine += (overhead-(p[i].aT-timeLine));
+        }else if(overhead){
+            timeLine += overhead;
         }
-        timeLine += bT[i] + overhead;
-        fT[i] = timeLine;
+        timeLine += p[i].bT;
+        p[i].fT = timeLine;
+        p[i].taT = p[i].fT - p[i].aT;
+        p[i].wT = p[i].taT - p[i].bT;
     }
 }
-
-void turn_around_time(float aT[], float fT[], float taT[], int n)
-{
-
-    for (int i = 0; i < n; i++)
-        taT[i] = fT[i] - aT[i];
-}
-
-void waiting_time(float taT[], float bT[], float wT[], int n)
-{
-    for (int i = 0; i < n; i++)
-        wT[i] = taT[i] - bT[i];
-}
-
-float avg(float arr[], int n)
+float AvgTAT(Process p[], int n)
 {
     float sum = 0;
     for (int i = 0; i < n; i++)
     {
-        sum += arr[i];
+        sum += p[i].taT;
     }
     return sum / n;
+}
+
+float AvgWT(Process p[], int n)
+{
+    float sum = 0;
+    for (int i = 0; i < n; i++)
+    {
+        sum += p[i].wT;
+    }
+    return sum / n;
+}
+
+void dataCollect(Process p[], int n){
+    for (int i = 0; i < n; i++)
+        p[i].pid = i + 1;
+
+    char ask = 'n';
+    fflush(stdin);
+    printf("Needs Priority? y/n");
+    scanf("%c", &ask);
+    if (ask == 'y')
+    {
+        printf(" -----> Arrival Time AND Burst Time AND Priority\n");
+        scanP(p, n , true);
+    }
+    printf(" -----> Arrival Time AND Burst Time \n");
+    scanP(p, n , false);
+    fflush(stdin);
+    printf("Needs overHead? y/n");
+    scanf("%c", &ask);
+    if (ask == 'y')
+    {
+        printf("Enter Overhead : ");
+        scanf("%f" , &overhead);
+    }
+}
+
+void dataPrint(Process p[],float AvgTAT , float AvgWT ,int n){
+
+    printf("\nProcess\tArrival Time\tBurst Time\tFinish Time\tTurnaround Time\tWaiting Time\n");
+    for(int i = 0; i < n; i++) {
+        printf("P%d\t%10.2f\t%9.2f\t%12.2f\t%15.2f\t%12.2f\n", p[i].pid, p[i].aT, p[i].bT, p[i].fT, p[i].taT, p[i].wT);
+    }
+    printf("Average Turnaround Time = %.2f\n", AvgTAT);
+    printf("\nAverage Waiting Time = %.2f\n", AvgWT);
+}
+
+void functionCALL(Process p[], int n){
+    dataCollect(p,n);
+
+    sort_arr_for_fcfs(p, n);
+    TIMING(p,n);
+    float avgTAT = AvgTAT(p,n);
+    float avgWT = AvgWT(p,n);
+
+    dataPrint(p, avgTAT, avgWT , n);
 }
 
 int main()
@@ -117,47 +147,8 @@ int main()
     int n;
     printf("Enter the number of Process : ");
     scanf("%d", &n);
-    int p[n];
-    float aT[n], bT[n], prio[n], fT[n], taT[n], wT[n];
-    for (int i = 0; i < n; i++)
-        p[i] = i + 1;
-    printf(" -----> Arrival Time \n");
-    scanP(aT, n);
-    printf(" -----> Burst Time \n");
-    scanP(bT, n);
-    char ask = 'n';
-    printf("Needs Priority? y/n");
-    scanf("%c", &ask);
-    if (ask == 'y')
-    {
-        printf(" -----> Priority \n");
-        scanP(prio, n);
-    }
-    printf("Needs overHead? y/n");
-    scanf("%c", &ask);
-    if (ask == 'y')
-    {
-        printf("Enter Overhead : ");
-        scanf("%f" , &overhead);
-    }
-
-    sort_arr_for_fcfs(aT, bT, p, n);
-    final_Time(aT, bT, fT, n);
-    turn_around_time(aT, fT, taT, n);
-    waiting_time(taT, bT, wT, n);
-
-    heading(p, n);
-    PrintP(aT, n);
-    PrintP(bT, n);
-    PrintP(fT, n);
-    PrintP(taT, n);
-    PrintP(wT, n);
-
-    float avgTAT = avg(taT, n);
-    float avgWT = avg(wT, n);
-
-    printf("%.2f\n",avgTAT);
-    printf("%.2f",avgWT);
-
-    // for sorting on arrival time
+    Process p[n];
+    
+    functionCALL(p, n);
+    return 0;
 }

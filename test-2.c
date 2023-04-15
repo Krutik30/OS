@@ -32,7 +32,8 @@ void sort(Process* p, int n){
 
 void SJF(Process* p, int n, float overhead){
     int i,j,completed=0,current=0;
-    float time=0.0,totwt=0.0,tottt=0.0,next=0.0;
+    float time=0.0,totwt=0.0,tottt=0.0;
+    int next=0;
     Process temp;
 
     for(i=0;i<n;i++)
@@ -44,7 +45,7 @@ void SJF(Process* p, int n, float overhead){
             if(p[i].at<=time && p[i].visited==0){
                 if(next==-1)
                     next=i;
-                else if(p[i].bt<p[(int)next].bt)
+                else if(p[i].bt<p[next].bt)
                     next=i;
             }
         }
