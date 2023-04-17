@@ -3,16 +3,18 @@
 
 float timeLine = 0;
 float overhead = 0;
+float totalTimeLine = 0;
 
-typedef struct
+typedef struct Process
 {
-    int pid;
-    float aT;
-    float bT;
+    int pid;  // process id
+    float aT; // arrival time
+    float bT; // burst time
     int priority;
-    float fT;
-    float taT;
-    float wT;
+    float fT;  // finish time
+    float wT;  // waiting time
+    float taT; // turnaround time
+    float remaining;
 } Process;
 
 void scanP(Process p[], int n, bool flag)
@@ -30,6 +32,8 @@ void scanP(Process p[], int n, bool flag)
             printf("\tEnter Priority for Process - %d : ", i + 1);
             scanf("%f", &p[i].priority);
         }
+        totalTimeLine += p[i].bT;
+        p[i].remaining = p[i].bT;
     }
 }
 
@@ -42,48 +46,66 @@ void swap(Process *xp, Process *yp)
 
 void sort_arr_for_fcfs(Process p[], int n)
 {
-    int min_i;
     for (int i = 0; i < n; i++)
     {
-        min_i = i;
         for (int j = i + 1; j < n; j++)
         {
-            if (p[j].aT < p[min_i].aT)
-            {
-                min_i = j;
+            if (p[j].aT < p[i].aT)
+                swap(&p[j], &p[i]);
+            if (p[j].aT == p[i].aT && p[j].bT < p[i].bT)
+                swap(&p[j], &p[i]);
+        }
+    }
+}
+
+
+int till_arrival(Process p[] , int n ,int totalTimeLine){
+    for(int i=0;i<n;i++){
+        if(p[i].aT >= totalTimeLine)
+            return i;
+    }
+    return 0;
+}
+
+int small_P(Process p[] , int n ,int totalTimeLine){
+    int aTL = till_arrival(p,n,totalTimeLine);
+    int min = 99999;
+    int index = 0;
+    for (int i = 1; i < aTL; i++)
+    {
+        if(p[i].bT < min){
+            min = p[i].bT;
+            index = i;
+        }
+    }
+    return index;
+
+}
+void sort_arr_for_sjf(Process p[], int n)
+{
+    for(int k=0;k<totalTimeLine;k++){
+        Process curP = p[0];
+        int curI = 0 , prevI = 0;
+
+        int cI = small_P(p,n,totalTimeLine);
+        int ptoTake = till_arrival(p,n,totalTimeLine);
+        for(int i=0;i<ptoTake;i++){
+            if(curP.bT > p[i].bT){
+                prevI = curI;
+                curI = i;
+                curP = p[i];
             }
-        }
-        if (min_i != i)
-        {
-            swap(&p[i], &p[min_i]);
-        }
+        }    
+        p[curI].bT--;
     }
 }
 
 void TIMING(Process p[], int n)
 {
-    timeLine = 0;
-    for (int i = 0; i < n; i++)
-    {
-        if (overhead && p[i].aT > timeLine)
-        {
-            timeLine = p[i].aT;
-            timeLine += (overhead - (p[i].aT - timeLine));
-        }
-        else if (overhead)
-        {
-            timeLine += overhead;
-        }
-        else if (p[i].aT > timeLine)
-        {
-            timeLine = p[i].aT;
-        }
-        timeLine += p[i].bT;
-        p[i].fT = timeLine;
-        p[i].taT = p[i].fT - p[i].aT;
-        p[i].wT = p[i].taT - p[i].bT;
-    }
+    sort_arr_for_fcfs(p, n);
+    sort_arr_for_sjf(p, n);
 }
+
 float AvgTAT(Process p[], int n)
 {
     float sum = 0;
@@ -106,7 +128,6 @@ float AvgWT(Process p[], int n)
 
 void dataCollect(Process p[], int n)
 {
-
     char ask = 'n';
     fflush(stdin);
     printf("Needs Priority? y/n");
@@ -144,7 +165,6 @@ void functionCALL(Process p[], int n)
 {
     dataCollect(p, n);
 
-    sort_arr_for_fcfs(p, n);
     TIMING(p, n);
     float avgTAT = AvgTAT(p, n);
     float avgWT = AvgWT(p, n);

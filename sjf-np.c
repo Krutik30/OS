@@ -4,15 +4,15 @@
 float timeLine = 0;
 float overhead = 0;
 
-typedef struct
+typedef struct Process
 {
-    int pid;
-    float aT;
-    float bT;
+    int pid;  // process id
+    float aT; // arrival time
+    float bT; // burst time
     int priority;
-    float fT;
-    float taT;
-    float wT;
+    float fT;  // finish time
+    float wT;  // waiting time
+    float taT; // turnaround time
 } Process;
 
 void scanP(Process p[], int n, bool flag)
@@ -42,29 +42,33 @@ void swap(Process *xp, Process *yp)
 
 void sort_arr_for_fcfs(Process p[], int n)
 {
-    int min_i;
     for (int i = 0; i < n; i++)
     {
-        min_i = i;
         for (int j = i + 1; j < n; j++)
         {
-            if (p[j].aT < p[min_i].aT)
-            {
-                min_i = j;
-            }
-        }
-        if (min_i != i)
-        {
-            swap(&p[i], &p[min_i]);
+            if (p[j].aT < p[i].aT)
+                swap(&p[j], &p[i]);
+            if (p[j].aT == p[i].aT && p[j].bT < p[i].bT)
+                swap(&p[j], &p[i]);
         }
     }
 }
 
-void TIMING(Process p[], int n)
+void sort_arr_for_sjf(Process p[], int n)
 {
-    timeLine = 0;
     for (int i = 0; i < n; i++)
     {
+        int s = i;
+        for (int j = i + 1; j < n; j++)
+        {
+            if (p[i].aT <= p[i - 1].fT + overhead && p[j].aT <= p[i - 1].fT + overhead)
+            {
+                if (p[i].bT > p[j].bT)
+                {
+                    swap(&p[i], &p[j]);
+                }
+            }
+        }
         if (overhead && p[i].aT > timeLine)
         {
             timeLine = p[i].aT;
@@ -84,6 +88,13 @@ void TIMING(Process p[], int n)
         p[i].wT = p[i].taT - p[i].bT;
     }
 }
+
+void TIMING(Process p[], int n)
+{
+    sort_arr_for_fcfs(p, n);
+    sort_arr_for_sjf(p, n);
+}
+
 float AvgTAT(Process p[], int n)
 {
     float sum = 0;
@@ -106,7 +117,6 @@ float AvgWT(Process p[], int n)
 
 void dataCollect(Process p[], int n)
 {
-
     char ask = 'n';
     fflush(stdin);
     printf("Needs Priority? y/n");
@@ -144,7 +154,6 @@ void functionCALL(Process p[], int n)
 {
     dataCollect(p, n);
 
-    sort_arr_for_fcfs(p, n);
     TIMING(p, n);
     float avgTAT = AvgTAT(p, n);
     float avgWT = AvgWT(p, n);
