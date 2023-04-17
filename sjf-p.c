@@ -79,31 +79,60 @@ int small_P(Process p[] , int n ,int totalTimeLine){
         }
     }
     return index;
-
 }
-void sort_arr_for_sjf(Process p[], int n)
-{
-    for(int k=0;k<totalTimeLine;k++){
-        Process curP = p[0];
-        int curI = 0 , prevI = 0;
 
-        int cI = small_P(p,n,totalTimeLine);
-        int ptoTake = till_arrival(p,n,totalTimeLine);
-        for(int i=0;i<ptoTake;i++){
-            if(curP.bT > p[i].bT){
-                prevI = curI;
-                curI = i;
-                curP = p[i];
-            }
-        }    
-        p[curI].bT--;
+
+void execute(Process* p , float time) {
+    p->remaining--;
+    if (p->remaining == 0) {
+        p->fT = time;
     }
 }
+
+void give(Process p[] , int n){
+    for(int i=0;i<n;i++){
+        p[i].taT = p[i].fT - p[i].aT;
+        p[i].wT = p[i].taT - p[i].bT;
+    }
+}
+
+int is_completed(Process p) {
+    return p.remaining == 0;
+}
+
+void sjf(Process p[], int n) {
+    float current_time = 0;
+    float completed_processes = 0;
+    sort_arr_for_fcfs(p, n);
+    while (completed_processes < n) {
+        int selected_process = -1;
+        for (int i = 0; i < n; i++) {
+            if (p[i].aT <= current_time && !is_completed(p[i])) {
+                selected_process = i;
+                break;
+            }
+        }
+        if (selected_process == -1) {
+            printf("Idle %d-%d\n", current_time, p[0].aT);
+            current_time = p[0].aT;
+        } else {
+            // printf("Running process %d\n", p[selected_process].pid);
+            execute(&p[selected_process] , current_time);
+            current_time++;
+            if (is_completed(p[selected_process])) {
+                completed_processes++;
+            }
+        }
+    }
+
+    give(p,n);
+}
+
 
 void TIMING(Process p[], int n)
 {
     sort_arr_for_fcfs(p, n);
-    sort_arr_for_sjf(p, n);
+    sjf(p, n);
 }
 
 float AvgTAT(Process p[], int n)
