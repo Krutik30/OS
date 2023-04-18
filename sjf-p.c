@@ -82,11 +82,8 @@ int small_P(Process p[] , int n ,int totalTimeLine){
 }
 
 
-void execute(Process* p , float time) {
+void execute(Process* p) {
     p->remaining--;
-    if (p->remaining == 0) {
-        p->fT = time;
-    }
 }
 
 void give(Process p[] , int n){
@@ -103,25 +100,34 @@ int is_completed(Process p) {
 void sjf(Process p[], int n) {
     float current_time = 0;
     float completed_processes = 0;
+    int prev_pro;
     sort_arr_for_fcfs(p, n);
     while (completed_processes < n) {
         int selected_process = -1;
+
         for (int i = 0; i < n; i++) {
             if (p[i].aT <= current_time && !is_completed(p[i])) {
-                selected_process = i;
-                break;
+                if(selected_process == -1 || p[i].remaining < p[selected_process].remaining)
+                    selected_process = i;
             }
         }
         if (selected_process == -1) {
-            printf("Idle %d-%d\n", current_time, p[0].aT);
-            current_time = p[0].aT;
+            current_time++;
         } else {
+            execute(&p[selected_process]);
             // printf("Running process %d\n", p[selected_process].pid);
-            execute(&p[selected_process] , current_time);
             current_time++;
             if (is_completed(p[selected_process])) {
+                p[selected_process].fT = current_time;
                 completed_processes++;
             }
+        }
+        if(selected_process != prev_pro){
+            current_time += overhead;
+            totalTimeLine += overhead;
+            printf("change %d to ",prev_pro+1);
+            prev_pro = selected_process;
+            printf("%d\n%f\n",prev_pro+1,current_time);
         }
     }
 
@@ -166,8 +172,10 @@ void dataCollect(Process p[], int n)
         printf(" -----> Arrival Time AND Burst Time AND Priority\n");
         scanP(p, n, true);
     }
-    printf(" -----> Arrival Time AND Burst Time \n");
-    scanP(p, n, false);
+    else{
+        printf(" -----> Arrival Time AND Burst Time \n");
+        scanP(p, n, false);
+    }
     fflush(stdin);
     printf("Needs overHead? y/n");
     scanf("%c", &ask);
