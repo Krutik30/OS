@@ -1,0 +1,2 @@
+echo "$LOGNAME"
+echo "$USER"

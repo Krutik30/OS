@@ -118,16 +118,14 @@ void sjf(Process p[], int n) {
             // printf("Running process %d\n", p[selected_process].pid);
             current_time++;
             if (is_completed(p[selected_process])) {
-                p[selected_process].fT = current_time;
+                p[selected_process].fT = current_time - overhead;
                 completed_processes++;
             }
         }
         if(selected_process != prev_pro){
             current_time += overhead;
             totalTimeLine += overhead;
-            printf("change %d to ",prev_pro+1);
             prev_pro = selected_process;
-            printf("%d\n%f\n",prev_pro+1,current_time);
         }
     }
 

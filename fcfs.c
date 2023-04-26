@@ -40,7 +40,7 @@ void swap(Process *xp, Process *yp)
     *yp = temp;
 }
 
-void sort_arr_for_fcfs(Process p[], int n)
+void fcfs(Process p[], int n)
 {
     int min_i;
     for (int i = 0; i < n; i++)

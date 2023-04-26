@@ -97,6 +97,130 @@ int is_completed(Process p) {
     return p.remaining == 0;
 }
 
+void sort_arr_for_fcfs(Process p[], int n)
+{
+    for (int i = 0; i < n; i++)
+    {
+        for (int j = i + 1; j < n; j++)
+        {
+            if (p[j].aT < p[i].aT)
+                swap(&p[j], &p[i]);
+            if (p[j].aT == p[i].aT && p[j].priority < p[i].priority)
+                swap(&p[j], &p[i]);
+        }
+    }
+}
+
+void fcfs(Process p[], int n)
+{
+    int min_i;
+    for (int i = 0; i < n; i++)
+    {
+        min_i = i;
+        for (int j = i + 1; j < n; j++)
+        {
+            if (p[j].aT < p[min_i].aT)
+            {
+                min_i = j;
+            }
+        }
+        if (min_i != i)
+        {
+            swap(&p[i], &p[min_i]);
+        }
+
+        if (overhead && p[i].aT > timeLine)
+        {
+            timeLine = p[i].aT;
+            timeLine += (overhead - (p[i].aT - timeLine));
+        }
+        else if (overhead)
+        {
+            timeLine += overhead;
+        }
+        else if (p[i].aT > timeLine)
+        {
+            timeLine = p[i].aT;
+        }
+        timeLine += p[i].bT;
+        p[i].fT = timeLine;
+        p[i].taT = p[i].fT - p[i].aT;
+        p[i].wT = p[i].taT - p[i].bT;
+    }
+}
+
+void sort_arr_for_sjf(Process p[], int n)
+{
+    sort_arr_for_fcfs(p, n);
+    for (int i = 0; i < n; i++)
+    {
+        int s = i;
+        for (int j = i + 1; j < n; j++)
+        {
+            if (p[i].aT <= p[i - 1].fT + overhead && p[j].aT <= p[i - 1].fT + overhead)
+            {
+                if (p[i].bT > p[j].bT)
+                {
+                    swap(&p[i], &p[j]);
+                }
+            }
+        }
+        if (overhead && p[i].aT > timeLine)
+        {
+            timeLine = p[i].aT;
+            timeLine += (overhead - (p[i].aT - timeLine));
+        }
+        else if (overhead)
+        {
+            timeLine += overhead;
+        }
+        else if (p[i].aT > timeLine)
+        {
+            timeLine = p[i].aT;
+        }
+        timeLine += p[i].bT;
+        p[i].fT = timeLine;
+        p[i].taT = p[i].fT - p[i].aT;
+        p[i].wT = p[i].taT - p[i].bT;
+    }
+}
+
+
+void sjf(Process p[], int n) {
+    float current_time = 0;
+    float completed_processes = 0;
+    int prev_pro;
+    sort_arr_for_fcfs(p, n);
+    while (completed_processes < n) {
+        int selected_process = -1;
+
+        for (int i = 0; i < n; i++) {
+            if (p[i].aT <= current_time && !is_completed(p[i])) {
+                if(selected_process == -1 || p[i].remaining < p[selected_process].remaining)
+                    selected_process = i;
+            }
+        }
+        if (selected_process == -1) {
+            current_time++;
+        } else {
+            execute(&p[selected_process]);
+            // printf("Running process %d\n", p[selected_process].pid);
+            current_time++;
+            if (is_completed(p[selected_process])) {
+                p[selected_process].fT = current_time - overhead;
+                completed_processes++;
+            }
+        }
+        if(selected_process != prev_pro){
+            current_time += overhead;
+            totalTimeLine += overhead;
+            prev_pro = selected_process;
+        }
+    }
+
+    give(p,n);
+}
+
 void priority_p(Process p[], int n) {
     float current_time = 0;
     float completed_processes = 0;
@@ -131,12 +255,43 @@ void priority_p(Process p[], int n) {
     give(p,n);
 }
 
-
-void TIMING(Process p[], int n)
+void sort_arr_for_priority(Process p[], int n)
 {
     sort_arr_for_fcfs(p, n);
-    priority_p(p, n);
+
+    for (int i = 0; i < n; i++)
+    {
+        int s = i;
+        for (int j = i + 1; j < n; j++)
+        {
+            if (p[i].aT <= p[i - 1].fT + overhead && p[j].aT <= p[i - 1].fT + overhead)
+            {
+                if (p[i].priority > p[j].priority)
+                {
+                    swap(&p[i], &p[j]);
+                }
+            }
+        }
+        if (overhead && p[i].aT > timeLine)
+        {
+            timeLine = p[i].aT;
+            timeLine += (overhead - (p[i].aT - timeLine));
+        }
+        else if (overhead)
+        {
+            timeLine += overhead;
+        }
+        else if (p[i].aT > timeLine)
+        {
+            timeLine = p[i].aT;
+        }
+        timeLine += p[i].bT;
+        p[i].fT = timeLine;
+        p[i].taT = p[i].fT - p[i].aT;
+        p[i].wT = p[i].taT - p[i].bT;
+    }
 }
+
 
 float AvgTAT(Process p[], int n)
 {
@@ -181,6 +336,8 @@ void dataCollect(Process p[], int n)
         printf("Enter Overhead : ");
         scanf("%f", &overhead);
     }
+
+    
 }
 
 void dataPrint(Process p[], float AvgTAT, float AvgWT, int n)
@@ -211,20 +368,56 @@ void ganttChart(Process p[], int n)
     for (int i = 0; i < n; i++)
         printf("---------");
     printf("\n");
+
+    
 }
 
-void functionCALL(Process p[], int n)
-{
+void askUser(Process p[], int n){
     dataCollect(p, n);
+    int a ;
+    while(1){
+        printf("Which Algorithm do you want to perform?");
+        scanf("%d",&a);
 
-    TIMING(p, n);
-    float avgTAT = AvgTAT(p, n);
-    float avgWT = AvgWT(p, n);
-    dataPrint(p, avgTAT, avgWT, n);
+        printf("1.FCFS");
+        printf("\n2.SJF");
+        printf("\n3.SRTN");
+        printf("\n4.PRIORITY(NON-PREEMPTIVE)");
+        printf("\n5.PRIORITY(PREEMPTIVE)");
+        printf("\n6.ROUND ROBIN");
 
-    ganttChart(p, n);
+        switch (a)
+        {
+        case 1:
+            fcfs(p,n);
+            break;
+
+        case 2:
+            sort_arr_for_sjf(p,n);
+            break;
+        case 3:
+            sjf(p,n);
+            break;
+        case 4:
+            sort_arr_for_priority(p,n);
+            break;
+        case 5:
+            priority_p(p,n);
+            break;
+        
+        default:
+            printf("invalid option");
+            break;
+        }
+
+
+        float avgTAT = AvgTAT(p, n);
+        float avgWT = AvgWT(p, n);
+
+        dataPrint(p, avgTAT, avgWT, n);
+
+    }
 }
-
 
 int main()
 {
@@ -233,8 +426,8 @@ int main()
     printf("Enter the number of Process : ");
     scanf("%d", &n);
     Process p[n];
+    askUser(p,n);
 
-    functionCALL(p, n);
-
+    ganttChart(p, n);
     return 0;
 }

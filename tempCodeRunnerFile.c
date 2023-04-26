@@ -48,13 +48,13 @@ void sort_arr_for_fcfs(Process p[], int n)
         {
             if (p[j].aT < p[i].aT)
                 swap(&p[j], &p[i]);
-            if (p[j].aT == p[i].aT && p[j].priority < p[i].priority)
+            if (p[j].aT == p[i].aT && p[j].bT < p[i].bT)
                 swap(&p[j], &p[i]);
         }
     }
 }
 
-void sort_arr_for_priority(Process p[], int n)
+void sort_arr_for_sjf(Process p[], int n)
 {
     for (int i = 0; i < n; i++)
     {
@@ -63,7 +63,7 @@ void sort_arr_for_priority(Process p[], int n)
         {
             if (p[i].aT <= p[i - 1].fT + overhead && p[j].aT <= p[i - 1].fT + overhead)
             {
-                if (p[i].priority > p[j].priority)
+                if (p[i].bT > p[j].bT)
                 {
                     swap(&p[i], &p[j]);
                 }
@@ -89,6 +89,11 @@ void sort_arr_for_priority(Process p[], int n)
     }
 }
 
+void TIMING(Process p[], int n)
+{
+    sort_arr_for_fcfs(p, n);
+    sort_arr_for_sjf(p, n);
+}
 
 float AvgTAT(Process p[], int n)
 {
@@ -120,10 +125,9 @@ void dataCollect(Process p[], int n)
     {
         printf(" -----> Arrival Time AND Burst Time AND Priority\n");
         scanP(p, n, true);
-    }else{
-        printf(" -----> Arrival Time AND Burst Time \n");
-        scanP(p, n, false);
     }
+    printf(" -----> Arrival Time AND Burst Time \n");
+    scanP(p, n, false);
     fflush(stdin);
     printf("Needs overHead? y/n");
     scanf("%c", &ask);
