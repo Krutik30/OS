@@ -13,11 +13,7 @@ int main(){
     scanf("%d",&frame);
     int frames[n][frame];
     int flag , page_faults = 0;
-    int oldest_page_index = 0,least_recently_used_index;
-    int time_counter[frame];
-    for (int i = 0; i < frame; i++) {
-        time_counter[i] = 0;
-    }
+    int oldest_page_index = 0;
     for(int i=0;i<n;i++){
         if(i==0){
             for (int j = 0; j < frame; j++)
@@ -33,20 +29,13 @@ int main(){
         for (int j = 0; j < frame; j++) {
             if (frames[i][j] == pages[i]) {
                 flag = 1; // Page found in memory
-                time_counter[j] = i + 1; // Update the time of last use
                 break;
             }
         }
 
         if (flag == 0) {
-            least_recently_used_index = 0;
-            for (int j = 1; j < frame; j++) {
-                if (time_counter[j] < time_counter[least_recently_used_index]) {
-                    least_recently_used_index = j;
-                }
-            }
-            frames[i][least_recently_used_index] = pages[i];
-            time_counter[least_recently_used_index] = i + 1;
+            frames[i][oldest_page_index] = pages[i];
+            oldest_page_index = (oldest_page_index + 1) % frame;
             page_faults++;
         }
     }

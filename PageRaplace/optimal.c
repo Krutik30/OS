@@ -13,7 +13,7 @@ int main(){
     scanf("%d",&frame);
     int frames[n][frame];
     int flag , page_faults = 0;
-    int oldest_page_index = 0,least_recently_used_index;
+    int oldest_page_index = 0,last_used_index;
     int time_counter[frame];
     for (int i = 0; i < frame; i++) {
         time_counter[i] = 0;
@@ -29,24 +29,27 @@ int main(){
         }
 
         flag = 0;
-        // Check if page already exists in the frames
         for (int j = 0; j < frame; j++) {
             if (frames[i][j] == pages[i]) {
-                flag = 1; // Page found in memory
-                time_counter[j] = i + 1; // Update the time of last use
+                flag = 1;
                 break;
             }
         }
 
         if (flag == 0) {
-            least_recently_used_index = 0;
-            for (int j = 1; j < frame; j++) {
-                if (time_counter[j] < time_counter[least_recently_used_index]) {
-                    least_recently_used_index = j;
+            int max = 0;
+            last_used_index = 0;
+            for (int j = i+1; j < n; j++) {
+                for(int k=0;k<frame;k++){
+                    if(frames[i][k] == pages[j]){
+                        if(max < last_used_index){
+                            max = last_used_index;
+                        }
+                    }
                 }
             }
-            frames[i][least_recently_used_index] = pages[i];
-            time_counter[least_recently_used_index] = i + 1;
+            frames[i][last_used_index] = pages[i];
+            time_counter[last_used_index] = i + 1;
             page_faults++;
         }
     }

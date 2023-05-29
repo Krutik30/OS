@@ -29,11 +29,10 @@ int main(){
         }
 
         flag = 0;
-        // Check if page already exists in the frames
         for (int j = 0; j < frame; j++) {
             if (frames[i][j] == pages[i]) {
-                flag = 1; // Page found in memory
-                time_counter[j] = i + 1; // Update the time of last use
+                flag = 1;
+                time_counter[j] = i + 1;
                 break;
             }
         }
