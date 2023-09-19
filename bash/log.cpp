@@ -2,10 +2,12 @@
 using namespace std;
 int main()
 {
-    string s1 = "This File is in lowercase";
-    cout<<endl<<endl;
-    transform(s1.begin(), s1.end(), s1.begin(), ::toupper);
-
-    cout<<s1<<endl;
+    string s;
+    // cout<<"\n\nInput = ";
+    s = "hi hello how do you do!";
+    
+    transform(s.begin(),s.end(),s.begin(),::toupper);
+    cout<<endl<<"Uppercased = ";
+    cout<<s<<endl;
     return 0;
 }
